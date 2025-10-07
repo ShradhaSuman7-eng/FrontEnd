@@ -16,9 +16,13 @@ export const Home = () => {
     const fetchTodos = async () => {
       try {
         setLoading(true);
+        const jwt = localStorage.getItem("jwt");
         const response = await axios.get(`${BASE_URL}/todo/fetch`, {
           withCredentials: true,
-          headers: { "Content-Type": "application/json" },
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${jwt}`,
+          },
         });
         setTodos(response.data.todos);
         setError(null);

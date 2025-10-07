@@ -32,7 +32,9 @@ const Login = () => {
       console.log(data);
       toast.success(data.message || "User loggedin Successfully");
       localStorage.setItem("jwt", data.token);
-      navigate("/");
+      setTimeout(() => {
+        navigate("/");
+      }, 200);
       setEmail("");
       setPassword("");
     } catch (error) {

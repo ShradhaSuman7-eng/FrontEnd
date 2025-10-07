@@ -34,7 +34,7 @@ const Login = () => {
       localStorage.setItem("jwt", data.token);
       setTimeout(() => {
         navigate("/");
-      }, 200);
+      }, 580);
       setEmail("");
       setPassword("");
     } catch (error) {

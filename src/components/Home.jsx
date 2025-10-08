@@ -9,15 +9,16 @@ export const Home = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [newTodo, setNewTodo] = useState("");
-  const jwt = localStorage.getItem("jwt");
+  const [editingTodoId, setEditingTodoId] = useState(null);
+  const [editingText, setEditingText] = useState("");
 
+  const jwt = localStorage.getItem("jwt");
   const navigate = useNavigate();
 
   useEffect(() => {
     const fetchTodos = async () => {
       try {
         setLoading(true);
-
         const response = await axios.get(`${BASE_URL}/todo/fetch`, {
           withCredentials: true,
           headers: {
@@ -25,7 +26,6 @@ export const Home = () => {
             authorization: `Bearer ${jwt}`,
           },
         });
-
         setTodos(response.data.todos);
         setError(null);
       } catch (err) {
@@ -40,7 +40,6 @@ export const Home = () => {
 
   const todoCreate = async () => {
     if (!newTodo.trim()) return;
-
     try {
       const response = await axios.post(
         `${BASE_URL}/todo/create`,
@@ -61,7 +60,6 @@ export const Home = () => {
     }
   };
 
-  // Toggle todo status
   const todoStatus = async (id) => {
     try {
       const todo = todos.find((t) => t._id === id);
@@ -83,7 +81,6 @@ export const Home = () => {
     }
   };
 
-  // Delete a todo
   const todoDelete = async (id) => {
     try {
       await axios.delete(`${BASE_URL}/todo/delete/${id}`, {
@@ -100,7 +97,30 @@ export const Home = () => {
     }
   };
 
-  // Logout user
+  // Update todo text
+  const todoUpdateText = async (id) => {
+    if (!editingText.trim()) return;
+    try {
+      const response = await axios.put(
+        `${BASE_URL}/todo/update/${id}`,
+        { text: editingText },
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${jwt}`,
+          },
+        }
+      );
+      setTodos(todos.map((t) => (t._id === id ? response.data.todo : t)));
+      setEditingTodoId(null);
+      setEditingText("");
+    } catch (err) {
+      setError("Failed to update todo text");
+      console.error(err);
+    }
+  };
+
   const logout = async () => {
     try {
       await axios.get(`${BASE_URL}/user/logout`, {
@@ -125,6 +145,7 @@ export const Home = () => {
     <div className="bg-gray-100 max-w-lg lg:max-w-xl rounded-lg shadow-lg mx-8 sm:mx-auto p-6">
       <h1 className="text-2xl font-semibold text-center mb-4">Todo App</h1>
 
+      {/* Add Todo */}
       <div className="flex mb-4">
         <input
           type="text"
@@ -154,29 +175,64 @@ export const Home = () => {
             key={todo._id}
             className="flex items-center justify-between p-3 bg-gray-100 rounded-md"
           >
-            <div className="flex items-center">
+            <div className="flex items-center gap-2">
               <input
                 type="checkbox"
                 checked={todo.completed}
                 onChange={() => todoStatus(todo._id)}
-                className="mr-2 cursor-pointer"
+                className="cursor-pointer"
               />
-              <span
-                className={`${
-                  todo.completed
-                    ? "line-through text-gray-500 font-semibold"
-                    : "text-gray-800"
-                }`}
-              >
-                {todo.text}
-              </span>
+
+              {editingTodoId === todo._id ? (
+                <input
+                  type="text"
+                  value={editingText}
+                  onChange={(e) => setEditingText(e.target.value)}
+                  onKeyDown={(e) =>
+                    e.key === "Enter" && todoUpdateText(todo._id)
+                  }
+                  className="p-1 border rounded-md"
+                />
+              ) : (
+                <span
+                  className={`${
+                    todo.completed
+                      ? "line-through text-gray-500 font-semibold"
+                      : "text-gray-800"
+                  }`}
+                >
+                  {todo.text}
+                </span>
+              )}
             </div>
-            <button
-              onClick={() => todoDelete(todo._id)}
-              className="text-red-500 hover:text-red-800 duration-300"
-            >
-              Delete
-            </button>
+
+            <div className="flex items-center gap-2">
+              {editingTodoId === todo._id ? (
+                <button
+                  onClick={() => todoUpdateText(todo._id)}
+                  className="text-green-500 hover:text-green-700"
+                >
+                  Save
+                </button>
+              ) : (
+                <button
+                  onClick={() => {
+                    setEditingTodoId(todo._id);
+                    setEditingText(todo.text);
+                  }}
+                  className="text-blue-500 hover:text-blue-700"
+                >
+                  Edit
+                </button>
+              )}
+
+              <button
+                onClick={() => todoDelete(todo._id)}
+                className="text-red-500 hover:text-red-800"
+              >
+                Delete
+              </button>
+            </div>
           </li>
         ))}
       </ul>

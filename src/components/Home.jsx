@@ -9,6 +9,7 @@ export const Home = () => {
   const [error, setError] = useState(null);
   const [loading, setLoading] = useState(false);
   const [newTodo, setNewTodo] = useState("");
+  const jwt = localStorage.getItem("jwt");
 
   const navigate = useNavigate();
 
@@ -16,7 +17,7 @@ export const Home = () => {
     const fetchTodos = async () => {
       try {
         setLoading(true);
-        const jwt = localStorage.getItem("jwt");
+
         const response = await axios.get(`${BASE_URL}/todo/fetch`, {
           withCredentials: true,
           headers: {
@@ -24,6 +25,7 @@ export const Home = () => {
             authorization: `Bearer ${jwt}`,
           },
         });
+
         setTodos(response.data.todos);
         setError(null);
       } catch (err) {
@@ -43,7 +45,13 @@ export const Home = () => {
       const response = await axios.post(
         `${BASE_URL}/todo/create`,
         { text: newTodo, completed: false },
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${jwt}`,
+          },
+        }
       );
       setTodos([...todos, response.data.newTodo || response.data]);
       setNewTodo("");
@@ -60,7 +68,13 @@ export const Home = () => {
       const response = await axios.put(
         `${BASE_URL}/todo/update/${id}`,
         { ...todo, completed: !todo.completed },
-        { withCredentials: true }
+        {
+          withCredentials: true,
+          headers: {
+            "Content-Type": "application/json",
+            authorization: `Bearer ${jwt}`,
+          },
+        }
       );
       setTodos(todos.map((t) => (t._id === id ? response.data.todo : t)));
     } catch (err) {
@@ -74,6 +88,10 @@ export const Home = () => {
     try {
       await axios.delete(`${BASE_URL}/todo/delete/${id}`, {
         withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${jwt}`,
+        },
       });
       setTodos(todos.filter((t) => t._id !== id));
     } catch (err) {
@@ -87,6 +105,10 @@ export const Home = () => {
     try {
       await axios.get(`${BASE_URL}/user/logout`, {
         withCredentials: true,
+        headers: {
+          "Content-Type": "application/json",
+          authorization: `Bearer ${jwt}`,
+        },
       });
       toast.success("User logged out successfully");
       localStorage.removeItem("jwt");

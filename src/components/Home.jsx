@@ -85,7 +85,7 @@ export const Home = () => {
   // Logout user
   const logout = async () => {
     try {
-      await axios.get("${BASE_URL}/user/logout", {
+      await axios.get(`${BASE_URL}/user/logout`, {
         withCredentials: true,
       });
       toast.success("User logged out successfully");
